@@ -450,4 +450,11 @@ int main() {
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: application/json; charset=UTF-8\r\n"
             "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
-            "Connection: close\
+            "Connection: close\r\n\r\n" + resp_str;
+
+        write(new_socket, http_response.c_str(), http_response.length());
+        close(new_socket);
+    }
+
+    return 0;
+}
