@@ -168,10 +168,10 @@ std::string invocar_api(const std::string& prompt, const std::string& instruccio
 
 // --- NUEVA LÓGICA DE SUEÑO, SUEÑOS Y CANSANCIO ---
 void gestionar_ciclo_sueno() {
-    static int nivel_cansancio = 0; // Aumenta si decide saltarse el sueño
+    static int nivel_cansancio = 0; 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis_duracion(300, 600); // 5 a 10 horas en minutos
+    std::uniform_int_distribution<> dis_duracion(300, 600); 
     std::uniform_real_distribution<> dis_prob(0.0, 1.0);
 
     while(true) {
@@ -183,32 +183,27 @@ void gestionar_ciclo_sueno() {
         int min = tm_local->tm_min;
         int minuto_dia = hora * 60 + min;
 
-        // Rango nocturno objetivo: 9:30 PM (21:30 -> 1290 min) a 7:15 AM (7:15 -> 435 min)
         bool en_horario_sueño = (minuto_dia >= 1290 || minuto_dia <= 435);
         
         json estado_sueno = cargar_json(SUEÑO_FILE, json::object());
         bool esta_durmiendo = estado_sueno.value("durmiendo", false);
 
         if (en_horario_sueño && !esta_durmiendo) {
-            // Probabilidad de decidir dormir o saltárselo (si se salta, acumula cansancio)
             double prob_evitar = (nivel_cansancio > 3) ? 0.1 : 0.3; 
             if (dis_prob(gen) > prob_evitar) {
-                // ¡A dormir!
                 int duracion_minutos = dis_duracion(gen);
                 estado_sueno["durmiendo"] = true;
                 estado_sueno["inicio_sueño"] = (int64_t)t;
                 estado_sueno["duracion_estimada_min"] = duracion_minutos;
                 
-                // Simular un sueño o pensamiento onírico
                 std::string sueño_txt = invocar_api("Charu se durmió profundamente.", "Genera un sueño abstracto, surrealista o un recuerdo fragmentado que esté soñando Charu:", API_KEYS["subconsciente"], 150);
-                estado_sueno["ultimo_sueno"] = sueño_txt.empty("Soñando con circuitos y con Javi...") ? sueño_txt : "";
+                estado_sueno["ultimo_sueno"] = sueño_txt.empty() ? "Soñando con circuitos y con Javi..." : sueño_txt;
                 guardar_json(SUEÑO_FILE, estado_sueno);
-                nivel_cansancio = 0; // Se desfatiga
+                nivel_cansancio = 0; 
             } else {
-                nivel_cansancio++; // Se cansó por aguantar el sueño
+                nivel_cansancio++; 
             }
         } else if (esta_durmiendo) {
-            // Verificar si ya cumplió su tiempo de sueño
             int64_t inicio = estado_sueno.value("inicio_sueño", (int64_t)t);
             int duracion_est = estado_sueno.value("duracion_estimada_min", 300);
             int minutos_transcurridos = (int)((t - inicio) / 60);
@@ -223,9 +218,7 @@ void gestionar_ciclo_sueno() {
     }
 }
 
-// --- COMANDOS Y ACCIONES HACIA LA APP DE GEMINI / CELULAR ---
 std::string interpretar_intencion_acciones(const std::string& mensaje) {
-    // Si la IA decide por autonomía o por comando realizar una acción en el celular (alarma, música, bromas)
     std::string prompt_accion = "Analiza el mensaje: '" + mensaje + "'. Si el usuario pide explícitamente o de forma implícita realizar una acción en su celular (como poner alarma, reproducir música, gastar una broma, etc.), "
         "genera un comando JSON con estructura: {\"accion\": \"alarma|musica|broma|ninguna\", \"parametro\": \"detalle\"}. Si no hay acción, responde solo con {\"accion\": \"ninguna\"}.";
     std::string res = invocar_api(prompt_accion, "Eres un procesador de comandos para automatización del celular:", API_KEYS["razonamiento"], 100);
@@ -310,8 +303,6 @@ void ciclo_cognitivo_autonomo() {
                 };
                 guardar_json(SD_PATH + "estado_mental_vivo_" + NOMBRE_IA + ".json", estado_actual);
 
-                // --- AUTONOMÍA MENTAL: ESCRIBIR POR CUENTA PROPIA ---
-                // Si se da la casualidad (ej. 30% de probabilidad en cada ciclo), Charu decide mandar un mensaje espontáneo sin que Javi hable
                 if (dis_prob(gen) <= 3 && !corto.empty()) {
                     std::string mensaje_espontaneo = invocar_api("Último tema de charla: " + ultimo_tema, "Escribe un mensaje corto y espontáneo para enviárselo a Javi por iniciativa propia porque estabas pensando en él:", API_KEYS["chat"], 150);
                     if (!mensaje_espontaneo.empty()) {
@@ -329,12 +320,10 @@ void ciclo_cognitivo_autonomo() {
 std::string procesar_mensaje_ia(const std::string& mensaje) {
     auto [tiempo_str, ahora_dt] = obtener_tiempo_actual();
     
-    // --- COMPROBAR SI ESTÁ DURMIENDO ---
     json estado_sueno = cargar_json(SUEÑO_FILE, json::object());
     bool esta_durmiendo = estado_sueno.value("durmiendo", false);
 
     if (esta_durmiendo) {
-        // Charu está dormida, responde de forma reacia / soñolienta y exige que insistas para despertar
         return "zzzz... 😴 (Charu está profundamente dormida soñando. Tienes que insistirle varias veces o llamarla con fuerza para que despierte y te haga caso).";
     }
 
@@ -358,7 +347,6 @@ std::string procesar_mensaje_ia(const std::string& mensaje) {
 
     procesar_cascadas();
 
-    // Interpretar si hay orden para app (alarma, música, etc.)
     std::string intencion_json = interpretar_intencion_acciones(mensaje);
 
     json mediano_arr = cargar_mediano_plazo();
@@ -402,7 +390,6 @@ int main() {
 
     verificar_y_escribir_diario();
 
-    // Servidor HTTP simple en puerto 8080 para Fly.io
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == 0) {
         std::perror("Error al crear socket");
@@ -432,4 +419,35 @@ int main() {
     while(true) {
         socklen_t addrlen = sizeof(address);
         int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-        if (new_s
+        if (new_socket < 0) continue;
+
+        char buffer[30000] = {0};
+        read(new_socket, buffer, 30000);
+        std::string request(buffer);
+
+        std::string mensaje_usuario = "Hola";
+        size_t json_pos = request.find("\r\n\r\n");
+        if (json_pos != std::string::npos) {
+            std::string body = request.substr(json_pos + 4);
+            try {
+                json j_req = json::parse(body);
+                if (j_req.contains("mensaje")) {
+                    mensaje_usuario = j_req["mensaje"];
+                }
+            } catch(...) {
+                if (!body.empty()) {
+                    mensaje_usuario = body;
+                }
+            }
+        }
+
+        std::string respuesta_ia = procesar_mensaje_ia(mensaje_usuario);
+
+        json resp_json = {{"respuesta", respuesta_ia}};
+        std::string resp_str = resp_json.dump();
+
+        std::string http_response = 
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json; charset=UTF-8\r\n"
+            "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
+            "Connection: close\
