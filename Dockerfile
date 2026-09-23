@@ -14,5 +14,6 @@ COPY . .
 
 RUN g++ -std=c++17 main.cpp -o charu_bot -lcurl -lpthread
 
-CMD ["./charu_bot"]
+EXPOSE 8080
 
+CMD ["./charu_bot"]
