@@ -1,0 +1,138 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212; /* Fondo oscuro */
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.chat-container {
+    width: 450px;
+    max-width: 95%;
+    height: 700px;
+    max-height: 90vh;
+    background-color: #1e1e1e;
+    border-radius: 15px;
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #333;
+}
+
+.chat-header {
+    background-color: #252525;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+}
+
+.chat-header .avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, #7b1fa2, #ce93d8);
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    flex-grow: 1;
+}
+
+.status-dot {
+    height: 10px;
+    width: 10px;
+    background-color: #4caf50; /* Verde de en línea */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.chat-window {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message.user {
+    justify-content: flex-end;
+}
+
+.message .message-content {
+    max-width: 75%;
+    padding: 12px 18px;
+    border-radius: 15px;
+    line-height: 1.4;
+    font-size: 0.95em;
+}
+
+.message.bot .message-content {
+    background-color: #333;
+    color: #e0e0e0;
+    border-top-left-radius: 3px;
+}
+
+.message.user .message-content {
+    background-color: #673ab7; /* Color de burbuja de usuario */
+    color: white;
+    border-top-right-radius: 3px;
+}
+
+.chat-input-area {
+    background-color: #252525;
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #333;
+}
+
+#user-input {
+    flex-grow: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: white;
+    outline: none;
+}
+
+#user-input:focus {
+    border-color: #7e57c2;
+}
+
+#send-btn {
+    padding: 10px 25px;
+    background-color: #7b1fa2;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+#send-btn:hover {
+    background-color: #8e24aa;
+}
+
+.debug-status {
+    background-color: #111;
+    color: #888;
+    padding: 5px 20px;
+    font-size: 0.7em;
+    text-align: center;
+}

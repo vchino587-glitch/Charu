@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charu - Inteligencia Artificial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar"></div>
+            <h2>Charu</h2>
+            <span class="status-dot"></span> En línea
+        </div>
+        
+        <div class="chat-window" id="chat-window">
+            <!-- Los mensajes aparecerán aquí -->
+            <div class="message bot">
+                <div class="message-content">Hola?</div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje a Charu... (ej. 'Hola')">
+            <button id="send-btn">Enviar</button>
+        </div>
+        
+        <!-- Sección de estado de depuración (se puede ocultar luego) -->
+        <div class="debug-status" id="debug-status">
+            Estado: Esperando para conectar...
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
