@@ -425,6 +425,20 @@ int main() {
         read(new_socket, buffer, 30000);
         std::string request(buffer);
 
+        // Si es un GET (como el health check de Fly.io), respondemos al instante sin llamar a la IA
+        if (request.rfind("GET", 0) == 0) {
+            std::string resp_str = "{\"status\":\"online\",\"bot\":\"Charu\"}";
+            std::string http_response = 
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json; charset=UTF-8\r\n"
+                "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
+                "Connection: close\r\n\r\n" + resp_str;
+
+            write(new_socket, http_response.c_str(), http_response.length());
+            close(new_socket);
+            continue;
+        }
+
         std::string mensaje_usuario = "Hola";
         size_t json_pos = request.find("\r\n\r\n");
         if (json_pos != std::string::npos) {
