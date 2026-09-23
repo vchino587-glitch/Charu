@@ -618,16 +618,19 @@ int main() {
 
     std::cout << "🚀 CHARU C++ (SERVIDOR WEB EN NUBE) ACTIVA EN PUERTO 8080 🚀\n";
 
-    while(true) {
-        socklen_t addrlen = sizeof(address);
-        int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-        if (new_socket < 0) continue;
+    // Reemplaza tu bucle while(true) en el main por esto:
 
+while(true) {
+    socklen_t addrlen = sizeof(address);
+    int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
+    if (new_socket < 0) continue;
+
+    // Lanzamos un hilo detach para atender la petición sin bloquear al servidor principal
+    std::thread([new_socket]() {
         char buffer[30000] = {0};
         read(new_socket, buffer, 30000);
         std::string request(buffer);
 
-        // Si es una petición GET, devolvemos la interfaz gráfica chula en HTML
         if (request.rfind("GET", 0) == 0) {
             std::string http_response = 
                 "HTTP/1.1 200 OK\r\n"
@@ -637,7 +640,7 @@ int main() {
 
             write(new_socket, http_response.c_str(), http_response.length());
             close(new_socket);
-            continue;
+            return;
         }
 
         std::string mensaje_usuario = "Hola";
@@ -669,7 +672,5 @@ int main() {
 
         write(new_socket, http_response.c_str(), http_response.length());
         close(new_socket);
-    }
-
-    return 0;
+    }).detach();
 }
