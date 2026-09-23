@@ -618,59 +618,59 @@ int main() {
 
     std::cout << "🚀 CHARU C++ (SERVIDOR WEB EN NUBE) ACTIVA EN PUERTO 8080 🚀\n";
 
-    // Reemplaza tu bucle while(true) en el main por esto:
+    while(true) {
+        socklen_t addrlen = sizeof(address);
+        int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
+        if (new_socket < 0) continue;
 
-while(true) {
-    socklen_t addrlen = sizeof(address);
-    int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-    if (new_socket < 0) continue;
+        std::thread([new_socket]() {
+            char buffer[30000] = {0};
+            read(new_socket, buffer, 30000);
+            std::string request(buffer);
 
-    // Lanzamos un hilo detach para atender la petición sin bloquear al servidor principal
-    std::thread([new_socket]() {
-        char buffer[30000] = {0};
-        read(new_socket, buffer, 30000);
-        std::string request(buffer);
+            if (request.rfind("GET", 0) == 0) {
+                std::string http_response = 
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: text/html; charset=UTF-8\r\n"
+                    "Content-Length: " + std::to_string(HTML_UI.length()) + "\r\n"
+                    "Connection: close\r\n\r\n" + HTML_UI;
 
-        if (request.rfind("GET", 0) == 0) {
+                write(new_socket, http_response.c_str(), http_response.length());
+                close(new_socket);
+                return;
+            }
+
+            std::string mensaje_usuario = "Hola";
+            size_t json_pos = request.find("\r\n\r\n");
+            if (json_pos != std::string::npos) {
+                std::string body = request.substr(json_pos + 4);
+                try {
+                    json j_req = json::parse(body);
+                    if (j_req.contains("mensaje")) {
+                        mensaje_usuario = j_req["mensaje"];
+                    }
+                } catch(...) {
+                    if (!body.empty()) {
+                        mensaje_usuario = body;
+                    }
+                }
+            }
+
+            std::string respuesta_ia = procesar_mensaje_ia(mensaje_usuario);
+
+            json resp_json = {{"respuesta", respuesta_ia}};
+            std::string resp_str = resp_json.dump();
+
             std::string http_response = 
                 "HTTP/1.1 200 OK\r\n"
-                "Content-Type: text/html; charset=UTF-8\r\n"
-                "Content-Length: " + std::to_string(HTML_UI.length()) + "\r\n"
-                "Connection: close\r\n\r\n" + HTML_UI;
+                "Content-Type: application/json; charset=UTF-8\r\n"
+                "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
+                "Connection: close\r\n\r\n" + resp_str;
 
             write(new_socket, http_response.c_str(), http_response.length());
             close(new_socket);
-            return;
-        }
+        }).detach();
+    }
 
-        std::string mensaje_usuario = "Hola";
-        size_t json_pos = request.find("\r\n\r\n");
-        if (json_pos != std::string::npos) {
-            std::string body = request.substr(json_pos + 4);
-            try {
-                json j_req = json::parse(body);
-                if (j_req.contains("mensaje")) {
-                    mensaje_usuario = j_req["mensaje"];
-                }
-            } catch(...) {
-                if (!body.empty()) {
-                    mensaje_usuario = body;
-                }
-            }
-        }
-
-        std::string respuesta_ia = procesar_mensaje_ia(mensaje_usuario);
-
-        json resp_json = {{"respuesta", respuesta_ia}};
-        std::string resp_str = resp_json.dump();
-
-        std::string http_response = 
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: application/json; charset=UTF-8\r\n"
-            "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
-            "Connection: close\r\n\r\n" + resp_str;
-
-        write(new_socket, http_response.c_str(), http_response.length());
-        close(new_socket);
-    }).detach();
+    return 0;
 }
