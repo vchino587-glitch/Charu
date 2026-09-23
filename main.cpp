@@ -40,6 +40,209 @@ const std::string METADATA_FILE = SD_PATH + "metadata_tiempo_" + NOMBRE_IA + ".j
 const std::string DIARIO_FILE = SD_PATH + "diario_secreto_" + NOMBRE_IA + ".json";
 const std::string SUEÑO_FILE = SD_PATH + "estado_sueno_" + NOMBRE_IA + ".json";
 
+// --- INTERFAZ HTML/CSS/JS UNIFICADA ---
+const std::string HTML_UI = R"html(
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charu - IA Autónoma</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 450px;
+            max-width: 95%;
+            height: 700px;
+            max-height: 90vh;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .chat-header {
+            background-color: #252525;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #7b1fa2, #ce93d8);
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+            flex-grow: 1;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .chat-window {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message-content {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 15px;
+            line-height: 1.4;
+            font-size: 0.95em;
+        }
+        .message.bot .message-content {
+            background-color: #333;
+            color: #e0e0e0;
+            border-top-left-radius: 3px;
+        }
+        .message.user .message-content {
+            background-color: #673ab7;
+            color: white;
+            border-top-right-radius: 3px;
+        }
+        .chat-input-area {
+            background-color: #252525;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #333;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: white;
+            outline: none;
+        }
+        #user-input:focus {
+            border-color: #7e57c2;
+        }
+        #send-btn {
+            padding: 10px 25px;
+            background-color: #7b1fa2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #send-btn:hover {
+            background-color: #8e24aa;
+        }
+        .debug-status {
+            background-color: #111;
+            color: #888;
+            padding: 5px 20px;
+            font-size: 0.7em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar"></div>
+            <h2>Charu</h2>
+            <span class="status-dot"></span> En línea
+        </div>
+        <div class="chat-window" id="chat-window">
+            <div class="message bot">
+                <div class="message-content">¡Hola, Javi! Ya estoy lista por aquí. ¿De qué hablamos hoy? 💚</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje a Charu...">
+            <button id="send-btn">Enviar</button>
+        </div>
+        <div class="debug-status" id="debug-status">Conectado al servidor C++ integrado</div>
+    </div>
+
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const debugStatus = document.getElementById('debug-status');
+
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+            contentDiv.textContent = text;
+            messageDiv.appendChild(contentDiv);
+            chatWindow.appendChild(messageDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage('user', text);
+            userInput.value = '';
+            debugStatus.textContent = 'Charu está pensando...';
+
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensaje: text })
+                });
+
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+                const data = await response.json();
+                addMessage('bot', data.respuesta);
+                debugStatus.textContent = 'Conectado y activo.';
+            } catch (error) {
+                console.error(error);
+                addMessage('bot', '¡Ups! Hubo un micro-corte conectando con el servidor.');
+                debugStatus.textContent = 'Error de conexión.';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
+)html";
+
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append((char*)contents, size * nmemb);
     return size * nmemb;
@@ -166,7 +369,6 @@ std::string invocar_api(const std::string& prompt, const std::string& instruccio
     return "";
 }
 
-// --- NUEVA LÓGICA DE SUEÑO, SUEÑOS Y CANSANCIO ---
 void gestionar_ciclo_sueno() {
     static int nivel_cansancio = 0; 
     std::random_device rd;
@@ -425,14 +627,13 @@ int main() {
         read(new_socket, buffer, 30000);
         std::string request(buffer);
 
-        // Si es un GET (como el health check de Fly.io), respondemos al instante sin llamar a la IA
+        // Si es una petición GET, devolvemos la interfaz gráfica chula en HTML
         if (request.rfind("GET", 0) == 0) {
-            std::string resp_str = "{\"status\":\"online\",\"bot\":\"Charu\"}";
             std::string http_response = 
                 "HTTP/1.1 200 OK\r\n"
-                "Content-Type: application/json; charset=UTF-8\r\n"
-                "Content-Length: " + std::to_string(resp_str.length()) + "\r\n"
-                "Connection: close\r\n\r\n" + resp_str;
+                "Content-Type: text/html; charset=UTF-8\r\n"
+                "Content-Length: " + std::to_string(HTML_UI.length()) + "\r\n"
+                "Connection: close\r\n\r\n" + HTML_UI;
 
             write(new_socket, http_response.c_str(), http_response.length());
             close(new_socket);
