@@ -361,14 +361,21 @@ std::string invocar_api(const std::string& prompt, const std::string& instruccio
             if(res == CURLE_OK) {
                 try {
                     json j_res = json::parse(readBuffer);
-                    return j_res["candidates"][0]["content"]["parts"][0]["text"];
-                } catch (...) {}
+                    if (j_res.contains("candidates") && !j_res["candidates"].empty()) {
+                        return j_res["candidates"][0]["content"]["parts"][0]["text"];
+                    } else {
+                        std::cout << "⚠️ API Error JSON: " << readBuffer << std::endl;
+                    }
+                } catch (const std::exception& e) {
+                    std::cout << "⚠️ Error parseando JSON de API: " << e.what() << " | Raw: " << readBuffer << std::endl;
+                }
+            } else {
+                std::cout << "⚠️ Error en cURL: " << curl_easy_strerror(res) << std::endl;
             }
         }
     }
     return "";
 }
-
 void gestionar_ciclo_sueno() {
     static int nivel_cansancio = 0; 
     std::random_device rd;
